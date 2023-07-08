@@ -1,0 +1,29 @@
+name: Build Subversion statically
+
+on:
+  push:
+    branches: [ trunk ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential autoconf libtool libssl-dev libapr1-dev libaprutil1-dev zlib1g-dev
+
+    - name: Configure and build Subversion
+      run: |
+        ./autogen.sh
+        ./configure --prefix=/usr/local --without-berkeley-db --with-openssl --with-zlib --enable-static=yes
+        make -j$(nproc)
+        sudo make install
+
+    - name: Archive binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: subversion-binaries
+        path: /usr/local/bin/
